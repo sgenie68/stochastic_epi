@@ -62,7 +62,7 @@ int Person::contaminate(int contacts)
 		rate=1.0;
 	else
 		rate=0.0;
-	return floor((quarantine()?0:contacts)*rate); 
+	return round((quarantine()?0:contacts)*rate); 
 }
 
 
