@@ -45,7 +45,7 @@ int Person::contacts()
 {
 	int val;
 
-	poisson(&val,1,2);
+	poisson(&val,1,3);
 	//Make number of contacts related to the age
 	return val;
 }
@@ -54,15 +54,20 @@ int Person::contaminate(int contacts)
 {
 	double rate=0.7;
 
+	if(quarantine())
+		return 0;
 	if(age()<3)
 		rate=0.15;
 	else if(age()>15)
 		rate=0.1;
-	if(trigger(rate))
-		rate=1.0;
-	else
-		rate=0.0;
-	return round((quarantine()?0:contacts)*rate); 
+	else 
+		rate=0.05;
+
+	int ret=0;
+	for(int i=0;i<contacts;i++)
+		if(trigger(rate))
+			ret++;
+	return ret;
 }
 
 
@@ -103,8 +108,8 @@ void AreaBase::run()
 		{
 			//Contaminate neighbours
 	 		p->touched()+=p->contaminate(p->contacts());
-//			if(p->age()>2)
-//				p->quarantine(true);
+			//if(p->age()>5)
+			//	p->quarantine(true);
 			++it;
 			continue;
 		}

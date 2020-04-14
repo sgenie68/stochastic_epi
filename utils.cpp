@@ -23,7 +23,6 @@ int weighted_choice(double *weights,int num_of_weights)
 		sum+=weights[i];
 		cumsum[i]=0.0;
 	}
-
 	for(int i=0;i<num_of_weights;i++)
 		weights[i]*=1.0/sum;
 
@@ -78,6 +77,7 @@ void poisson(int *val,int num,double lambda)
 }
 
 
+#if 0
 double distance(double lat1,double lon1,double lat2,double lon2)
 {
 	const double R=6371e3;
@@ -90,53 +90,19 @@ double distance(double lat1,double lon1,double lat2,double lon2)
 	return R*c;
 
 }
+#else
+double distance(double lat1,double lon1,double lat2,double lon2)
+{
+	const double earthRadius=6371000.0;
+
+	double u=sin((lat2 - lat1)/2.0);
+  	double v=sin((lon2 - lon1)/2.0);
+  	return 2.0*earthRadius*asin(sqrt(u * u + cos(lat1) * cos(lat2) * v * v));	
+}
+#endif
+
 
 #ifdef DEBUG
-
-struct MyNode:public Node
-{
-	int data;
-};
-
-void print_list(MyNode *p)
-{
-	while(p)
-	{
-		printf("%d\n",p->data);
-		p=(MyNode *)p->pNext;
-	}		
-}
-
-
-void test_list()
-{
-	LinkedList pl;
-	MyNode *p;
-
-
-	for(int i=1;i<10;i++)
-	{
-		p=new MyNode;
-		p->data=i;
-		pl.add(p);
-	}
-	printf("Fresh: \n");
-	print_list((MyNode *)pl.first());
-	p=(MyNode *)pl.first();
-	while(p->data!=5)
-		p=(MyNode *)p->pNext;
-	pl.remove(p);
-	printf("Without 5:\n");
-	print_list((MyNode *)pl.first());
-	p=(MyNode *)pl.first();
-	pl.remove(p);
-	printf("Without 1:\n");
-	print_list((MyNode *)pl.first());
-	p=(MyNode *)pl.last();
-	pl.remove(p);
-	printf("Without 9:\n");
-	print_list((MyNode *)pl.first());
-}
 
 int main()
 {
@@ -149,7 +115,6 @@ int main()
 	printf("Normal(5,2)=%lf\n",v);
 	poisson(&vi,1,5.0);	
 	printf("Poisson(5)=%d\n",vi);
-	test_list();
 	return 0;
 }
 
