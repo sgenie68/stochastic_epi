@@ -10,7 +10,7 @@
 using namespace std;
 
 
-Person::Person():m_age(0),m_duration(0),m_quarantine(false)
+Person::Person():m_age(0),m_duration(0),m_quarantine(false),m_state(STATE_EXPOSED)
 {
 	initialise();
 }
@@ -21,17 +21,54 @@ Person::~Person()
 
 bool Person::next_epoch()
 {
+	bool ret=true;
+
 	m_age++;
-	return !trigger(death());
+	//check if state switch is required
+	switch(m_state)
+	{
+		case STATE_EXPOSED:
+		case STATE_PRESYMPTOMATIC:
+		case STATE_INFECTIOUS:
+			//check if switch to difficult required
+			if(trigger(0.01))
+			{
+				m_state=STATE_DIFFICULT;
+				//fall through
+				m_duration=m_days[STATE_DIFFICULT];
+			}
+			else
+			{
+				if(age()>=m_days[m_state] && m_state!=STATE_INFECTIOUS)
+					m_state++;
+				break;
+			}
+		case STATE_DIFFICULT:
+			ret=!trigger(death());
+			//keep the state until recovered
+			break;
+	}
+	return ret;
 }
 
 void Person::initialise()
 {
 	double val=0.0;
 
+	//set up days for the states
 	while(val<=0.0)
-		normal(&val,1,DURATION_MEAN,DURATION_STDEV);
-	m_duration=floor(val);
+		normal(&val,1,4,2);
+	m_days[STATE_EXPOSED]=round(val);
+	while(val<=0.0)
+		normal(&val,1,2,1);
+	m_days[STATE_PRESYMPTOMATIC]=m_days[STATE_EXPOSED]+round(val);
+	while(val<=0.0)
+		normal(&val,1,10,3);
+	m_days[STATE_INFECTIOUS]=m_days[STATE_PRESYMPTOMATIC]+round(val);
+	while(val<=0.0)
+		normal(&val,1,20,10);
+	m_days[STATE_DIFFICULT]=m_days[STATE_INFECTIOUS]+round(val);
+	m_duration=m_days[STATE_INFECTIOUS];
 }
 
 
@@ -45,24 +82,32 @@ int Person::contacts()
 {
 	int val;
 
-	poisson(&val,1,3);
+	poisson(&val,1,4);
 	//Make number of contacts related to the age
 	return val;
 }
 
 int Person::contaminate(int contacts)
 {
-	double rate=0.7;
+	double rate=0.0;
 
 	if(quarantine())
 		return 0;
-	if(age()<3)
-		rate=0.15;
-	else if(age()>15)
-		rate=0.1;
-	else 
-		rate=0.05;
-
+	switch(m_state)
+	{
+		case STATE_EXPOSED:
+				rate=0.0;
+				break;
+		case STATE_PRESYMPTOMATIC:
+				rate=0.25;
+				break;
+		case STATE_INFECTIOUS:
+				rate=0.35;
+				break;
+		case STATE_DIFFICULT:
+				rate=0.01;
+				break;
+	}
 	int ret=0;
 	for(int i=0;i<contacts;i++)
 		if(trigger(rate))

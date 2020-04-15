@@ -47,7 +47,7 @@ int main(int argc,char *argv[])
 	AreaRank population;
 	population.initialise(configFileName);
 
-	for(int i=0;i<60;i++)
+	for(int i=0;i<120;i++)
 		population.next_epoch();
 	MPI_Finalize();
 	return 0;

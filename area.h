@@ -6,6 +6,13 @@
 #include "population.h"
 
 
+//States of the person
+#define STATE_EXPOSED		0
+#define STATE_PRESYMPTOMATIC	1
+#define STATE_INFECTIOUS	2
+#define STATE_DIFFICULT		3
+#define STATE_SIZE		(STATE_DIFFICULT+1)
+
 class Person
 {
 	public:
@@ -29,6 +36,8 @@ class Person
 		int& touched() { return m_contaminated; }  //should be reset before each epoch
 		unsigned long& id() { return m_id; }
 
+		int state() const { return m_state; }
+
 	protected:
 		void initialise();
 
@@ -37,6 +46,8 @@ class Person
 		bool m_quarantine;
 		int m_contaminated;
 		unsigned long m_id;
+		int m_state;
+		int m_days[STATE_SIZE]; //Number of days for eeach state
 };		
 
 typedef std::shared_ptr<Person> SPERSON;
