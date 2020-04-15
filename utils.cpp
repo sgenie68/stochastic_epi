@@ -77,8 +77,7 @@ void poisson(int *val,int num,double lambda)
 }
 
 
-#if 0
-double distance(double lat1,double lon1,double lat2,double lon2)
+double distance_slowest(double lat1,double lon1,double lat2,double lon2)
 {
 	const double R=6371e3;
 	double deltaphi=(lat2-lat1);
@@ -90,8 +89,22 @@ double distance(double lat1,double lon1,double lat2,double lon2)
 	return R*c;
 
 }
-#else
-double distance(double lat1,double lon1,double lat2,double lon2)
+double distance_fast(double lat1,double lon1,double lat2,double lon2)
+{
+	lat1=rad2deg(lat1);
+	lat2=rad2deg(lat2);
+	lon1=rad2deg(lon1);
+	lon2=rad2deg(lon2);
+
+	double lat = (lat1 + lat2) / 2.0 * 0.01745;
+	double dx = 111.3 * cos(lat) * (lon1 - lon2);
+	double dy = 111.3 * (lat1 - lat2);
+
+	return sqrt(dx*dx+dy*dy)*1000.0;
+}
+
+
+double distance_slow(double lat1,double lon1,double lat2,double lon2)
 {
 	const double earthRadius=6371000.0;
 
@@ -99,8 +112,9 @@ double distance(double lat1,double lon1,double lat2,double lon2)
   	double v=sin((lon2 - lon1)/2.0);
   	return 2.0*earthRadius*asin(sqrt(u * u + cos(lat1) * cos(lat2) * v * v));	
 }
-#endif
 
+
+double (*distance)(double lat1,double lon1,double lat2,double lon2)=distance_fast;
 
 #ifdef DEBUG
 
@@ -108,6 +122,10 @@ int main()
 {
 	double v;
 	int vi;
+	double lat1=deg2rad(37.418805);
+	double lon1=deg2rad(175.185771);
+	double lat2=deg2rad(37.341827);
+	double lon2=deg2rad(175.755107);
 
 	for(int i=0;i<10;i++)
 		printf("Trigger: %d\n",trigger(0.8));
@@ -115,6 +133,10 @@ int main()
 	printf("Normal(5,2)=%lf\n",v);
 	poisson(&vi,1,5.0);	
 	printf("Poisson(5)=%d\n",vi);
+	double d1=distance(lat1,lon1,lat2,lon2);
+	double d2=distance1(lat1,lon1,lat2,lon2);
+	double d3=distance2(lat1,lon1,lat2,lon2);
+	printf("Dist1=%lf, dist2=%lf, d3=%lf\n",d1,d2,d3);
 	return 0;
 }
 

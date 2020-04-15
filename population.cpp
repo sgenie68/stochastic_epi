@@ -110,7 +110,7 @@ Object *Population::fetch_object_nearby(double coordLat,double coordLong,double 
 
 	for(POPULATION::iterator it=m_general.begin();it!=m_general.end();++it)
 	{
-		if(distance((*it)->coordLat,(*it)->coordLong,coordLat,coordLong)<=max_distance)
+		if(::distance((*it)->coordLat,(*it)->coordLong,coordLat,coordLong)<=max_distance)
 		{
 			p=*it;
 			m_general.erase(it);
