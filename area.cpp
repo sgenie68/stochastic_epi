@@ -211,7 +211,7 @@ void AreaRank::store_day(unsigned long stats[STATS_SIZE])
 	if(rank())
 		return;
 	m_population.stats(&g,&i,&d);
-	printf("%d, %lu, %lu, %lu, %lu, %lu, %lu\n",m_epoch,m_population.state(),g,i,d,stats[STATS_SICK],stats[STATS_NEW],stats[STATS_HOSPITAL]);
+	printf("%d, %d, %lu, %lu, %lu, %lu, %lu, %lu\n",m_epoch,m_population.state(),g,i,d,stats[STATS_SICK],stats[STATS_NEW],stats[STATS_HOSPITAL]);
 }
 
 void AreaRank::next_epoch()

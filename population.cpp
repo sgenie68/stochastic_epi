@@ -134,7 +134,6 @@ bool Population::LoadStates()
 					const Setting& ddd=days[j];
 					ddd.lookupValue("days",d);
 					ddd.lookupValue("probability",prob);
-					fprintf(stderr,"For %s: %d %d -> %lf\n",st.name.c_str(),j,d,prob);
 					st.days.push_back(make_pair(d,prob));
 				}
 			}
