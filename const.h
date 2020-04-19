@@ -7,7 +7,8 @@
 #define STATS_DEAD	1
 #define STATS_RECOVERED	2
 #define STATS_NEW	3
-#define STATS_SIZE	(STATS_NEW+1)
+#define STATS_HOSPITAL	4
+#define STATS_SIZE	(STATS_HOSPITAL+1)
 
 #endif
 

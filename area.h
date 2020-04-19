@@ -16,7 +16,7 @@
 class Person
 {
 	public:
-		Person();
+		Person(Population& pops);
 		~Person();
 		
 		//move to nexy epoch
@@ -41,6 +41,7 @@ class Person
 	protected:
 		void initialise();
 
+		Population& m_population;
 		int m_duration;
 		int m_age;
 		bool m_quarantine;
@@ -60,6 +61,8 @@ class AreaBase
 		virtual void next_epoch();
 		int epoch() const { return m_epoch; }
 		virtual bool initialise(const std::string& name);
+		void quarantine(bool on) { m_quarantine=on; }
+		bool quarantine() const { return m_quarantine; }
 	protected:
 		virtual void run();
 		typedef std::list<SPERSON> PERSONS;
@@ -85,13 +88,13 @@ class AreaRank:public AreaBase
 		virtual bool initialise(const std::string& name);
 
 	protected:
-		Population m_population;
 		std::vector<unsigned long> m_infect;
 		void prepare_distr_vector(int num);
 		void store_day(unsigned long stats[3]);
 		unsigned long *distr_vector;
 		int m_nodesnum;
 		int m_rank;
+		Population m_population;
 };
 
 

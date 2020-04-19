@@ -7,7 +7,7 @@
 using namespace std;
 using namespace libconfig;
 
-Population::Population()
+Population::Population():m_current_state(0)
 {
 }
 
@@ -93,7 +93,13 @@ bool Population::LoadConstants()
 	double d;
 	try
   	{
-		m_root->lookupValue("distance_isolation",d);
+    		const Setting &params = (*m_root)["parameters"];
+		params.lookupValue("immunity",m_parameters.immunity);
+		params.lookupValue("death",m_parameters.death);
+		params.lookupValue("difficult",m_parameters.difficult);
+    		const Setting &cs = params.lookup("contagion");
+		for(int i=0;i<4;i++)
+			m_parameters.stages[i]=(double)cs[i];
 		return true;	
 	}
 	catch(...)
@@ -103,6 +109,46 @@ bool Population::LoadConstants()
 	return false;
 }
 
+bool Population::LoadStates()
+{
+	try
+	{
+    		const Setting &states = (*m_root)["states"];
+    		int count = states.getLength();
+		for(int i=0;i<count;i++)
+		{
+			const Setting& s=states[i];
+			State st;
+
+			s.lookupValue("name",st.name);
+			s.lookupValue("distance",st.distance);
+			s.lookupValue("contacts",st.contacts);
+			try
+			{
+    				const Setting &days = s["days"];
+    				int count1 = days.getLength();
+				for(int j=0;j<count1;j++)
+				{
+					int d;
+					double prob;
+					const Setting& ddd=days[j];
+					ddd.lookupValue("days",d);
+					ddd.lookupValue("probability",prob);
+					fprintf(stderr,"For %s: %d %d -> %lf\n",st.name.c_str(),j,d,prob);
+					st.days.push_back(make_pair(d,prob));
+				}
+			}
+			catch(...)
+			{
+			}
+			m_states.push_back(st);
+		}
+	}
+	catch(...)
+	{
+	}
+	return false;
+}
 
 Object *Population::fetch_object_nearby(double coordLat,double coordLong,double max_distance)
 {
@@ -150,7 +196,7 @@ Object *Population::fetch_object_rnd(int comp_index)
 
 unsigned long Population::FetchNearby(unsigned long id)
 {
-	double dist=100;
+	double dist=distance();
 	Object *p=(Object *)id;
 	if(!p)
 		return NONE;
@@ -178,7 +224,10 @@ void Population::dead(unsigned long v)
 
 void Population::recovered(unsigned long v)
 {
-	m_immune.push_back((Object *)v);
+	if(trigger(immunity()))
+		m_immune.push_back((Object *)v);
+	else
+		m_general.push_back((Object *)v);
 }
 
 void Population::stats(unsigned long *general,unsigned long *immune, unsigned long *dead)
@@ -188,8 +237,26 @@ void Population::stats(unsigned long *general,unsigned long *immune, unsigned lo
 	*dead=m_dead.size();
 }
 
+
 void Population::next_epoch()
 {
+	bool switched=false;
+
 	m_epoch++;
+	//Load proper state
+	for(int i=0;i<m_states.size();i++)
+	{
+		for(int j=0;j<m_states[i].days.size();j++)
+		{
+			if(m_epoch==m_states[i].days[j].first && trigger(m_states[i].days[j].second))
+			{
+				m_current_state=i;
+				switched=true;
+				break;
+			}
+		}
+		if(switched)
+			break;
+	}
 }
 

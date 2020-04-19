@@ -10,7 +10,7 @@
 using namespace std;
 
 
-Person::Person():m_age(0),m_duration(0),m_quarantine(false),m_state(STATE_EXPOSED)
+Person::Person(Population& pops):m_age(0),m_duration(0),m_quarantine(false),m_state(STATE_EXPOSED),m_population(pops)
 {
 	initialise();
 }
@@ -31,7 +31,7 @@ bool Person::next_epoch()
 		case STATE_PRESYMPTOMATIC:
 		case STATE_INFECTIOUS:
 			//check if switch to difficult required
-			if(trigger(0.01))
+			if(trigger(m_population.difficult()))
 			{
 				m_state=STATE_DIFFICULT;
 				//fall through
@@ -57,7 +57,7 @@ void Person::initialise()
 
 	//set up days for the states
 	while(val<=0.0)
-		normal(&val,1,4,2);
+		normal(&val,1,4,1);
 	m_days[STATE_EXPOSED]=round(val);
 	while(val<=0.0)
 		normal(&val,1,2,1);
@@ -75,14 +75,14 @@ void Person::initialise()
 double Person::death()
 {
 	//Need to make probabolity of death age-related
-	return 0.001;	
+	return m_population.death();
 }
 
 int Person::contacts()
 {
 	int val;
 
-	poisson(&val,1,4);
+	poisson(&val,1,m_population.contacts());
 	//Make number of contacts related to the age
 	return val;
 }
@@ -96,16 +96,16 @@ int Person::contaminate(int contacts)
 	switch(m_state)
 	{
 		case STATE_EXPOSED:
-				rate=0.0;
+				rate=m_population.stage(0);
 				break;
 		case STATE_PRESYMPTOMATIC:
-				rate=0.25;
+				rate=m_population.stage(1);
 				break;
 		case STATE_INFECTIOUS:
-				rate=0.35;
+				rate=m_population.stage(2);
 				break;
 		case STATE_DIFFICULT:
-				rate=0.01;
+				rate=m_population.stage(3);
 				break;
 	}
 	int ret=0;
@@ -116,7 +116,7 @@ int Person::contaminate(int contacts)
 }
 
 
-AreaBase::AreaBase():m_epoch(0)
+AreaBase::AreaBase():m_epoch(0),m_quarantine(false)
 {
 }
 
@@ -178,6 +178,7 @@ bool AreaRank::initialise(const std::string& name)
 	AreaBase::initialise(name);
 	m_population.Initialise(name);
 	m_population.LoadConstants();
+	m_population.LoadStates();
 	if(!rank())
 	{
 		m_population.LoadPopulation();
@@ -189,7 +190,7 @@ bool AreaRank::initialise(const std::string& name)
 			if(id!=NONE)
 				m_infect.push_back(id);
 		}
-		printf("Epoch, General, Immune, Dead, Sick, NewCases\n");
+		printf("Epoch, State, General, Immune, Dead, Sick, NewCases, Hospitalized\n");
 	}
 	return true;
 }
@@ -210,7 +211,7 @@ void AreaRank::store_day(unsigned long stats[STATS_SIZE])
 	if(rank())
 		return;
 	m_population.stats(&g,&i,&d);
-	printf("%d, %lu, %lu, %lu, %lu, %lu\n",m_epoch,g,i,d,stats[STATS_SICK],stats[STATS_NEW]);
+	printf("%d, %lu, %lu, %lu, %lu, %lu, %lu\n",m_epoch,m_population.state(),g,i,d,stats[STATS_SICK],stats[STATS_NEW],stats[STATS_HOSPITAL]);
 }
 
 void AreaRank::next_epoch()
@@ -253,8 +254,10 @@ void AreaRank::next_epoch()
 	m_dead.clear();
 	for(int i=0;i<ids.size();i++)
 	{
-		SPERSON p(new Person);
+		SPERSON p(new Person(m_population));
 		p->id()=ids[i];
+		if(quarantine())
+			p->quarantine(true);
 		m_sick.push_back(p);
 	}
 	run();
@@ -266,6 +269,8 @@ void AreaRank::next_epoch()
 			touched.push_back((*it)->id());
 			touched.push_back((*it)->touched());
 		}
+		if((*it)->state()==STATE_DIFFICULT)
+			stats[STATS_HOSPITAL]++;
 	}
 	stats[STATS_NEW]=touched.size();
 	stats[STATS_RECOVERED]=m_recovered.size();
@@ -289,6 +294,7 @@ void AreaRank::next_epoch()
 			//if(data.size())
 				MPI_Recv(data.data(),data.size(),MPI_LONG,slave,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
 			stats[STATS_SICK]+=ids[i+STATS_SICK];
+			stats[STATS_HOSPITAL]+=ids[i+STATS_HOSPITAL];
 			for(int j=0;j<ids[i+STATS_NEW];j+=2)
 			{
 				for(int k=0;k<data[j+1];k++)

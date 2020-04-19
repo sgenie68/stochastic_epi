@@ -26,6 +26,25 @@ struct Compartment
 typedef std::vector<Compartment> COMP_LIST;
 
 
+struct State
+{
+	std::string name;
+	double distance;
+	int contacts;
+	std::vector<std::pair<int,double> > days;
+};
+typedef std::vector<State> STATE_LIST;
+
+
+struct Parameters
+{
+	double immunity;
+	double death;
+	double difficult;		
+	double stages[4];
+};
+
+
 //???We also need a matrix of compartment connectivity to emulate signals passing
 
 class Population
@@ -37,6 +56,7 @@ class Population
 		void CreatePopulation(COMP_LIST& compartments); //???we need to pass connectvity matrix as well
 		bool LoadConstants();
 		bool LoadPopulation();
+		bool LoadStates();
 
 		void next_epoch();
 		unsigned long FetchNearby(unsigned long id);
@@ -50,6 +70,14 @@ class Population
 		//conststs
 		int get_people_met() const { return m_peoplemet; }
 
+		int state() { return m_current_state; }
+		double distance() const { return m_states[m_current_state].distance; }
+		double contacts() const { return m_states[m_current_state].contacts; }
+		double immunity() const { return m_parameters.immunity; }
+		double death() const { return m_parameters.death; }
+		double difficult() const { return m_parameters.difficult; }
+		double stage(int i) const { return m_parameters.stages[i]; }
+
 	protected:
 		typedef std::list<Object *> POPULATION;
 
@@ -59,6 +87,9 @@ class Population
 		int m_peoplemet;
 		int m_epoch;
 		COMP_LIST m_comp_list;
+		STATE_LIST m_states;
+		Parameters m_parameters;
+		int m_current_state;
 		POPULATION m_general;
 		POPULATION m_immune;
 		POPULATION m_dead;
