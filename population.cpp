@@ -13,8 +13,8 @@ Population::Population():m_current_state(0)
 
 Population::~Population()
 {
-	for(POPULATION::iterator it=m_general.begin();it!=m_general.end();++it)
-		delete *it;	
+	//for(POPULATION::iterator it=m_general.begin();it!=m_general.end();++it)
+	//	delete *it;	
 }
 
 void Population::Initialise(const std::string& configname)
@@ -52,8 +52,9 @@ void Population::CreatePopulation(COMP_LIST& compartments)
 			Object *p=new Object;
 		 	p->flags=0;
 			p->index=index;
-			uniform(&p->coordLat,1,m_comp_list[index].centreLat,meters2rad(m_comp_list[index].radius));
-			uniform(&p->coordLong,1,m_comp_list[index].centreLong,meters2rad(m_comp_list[index].radius));
+			double mr=meters2rad(m_comp_list[index].radius);
+			uniform(&p->coordLat,1,m_comp_list[index].centreLat-mr,m_comp_list[index].centreLat+mr);
+			uniform(&p->coordLong,1,m_comp_list[index].centreLong-mr,m_comp_list[index].centreLong+mr);
 			m_general.push_back(p);
 		}
 	}
@@ -77,6 +78,8 @@ bool Population::LoadPopulation()
 			c.lookupValue("coordlong",cmp.centreLong);
 			c.lookupValue("radius",cmp.radius);
 			c.lookupValue("population",cmp.amount);
+			cmp.centreLat=deg2rad(cmp.centreLat);
+			cmp.centreLong=deg2rad(cmp.centreLong);
 			lst.push_back(cmp);
 		}
 		CreatePopulation(lst);

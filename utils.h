@@ -13,7 +13,7 @@ void uniform(double *val,int num,double a,double b);
 
 inline double deg2rad(double deg) { return deg*3.14159/180.0; }
 inline double rad2deg(double rad) { return rad*180.0/3.14159; }
-inline double meters2rad(double meters) { return meters/400075000.0*3.14159*2.0; }
+inline double meters2rad(double meters) { return meters/40007500.0*3.14159*2.0; }
 
 extern double (*distance)(double lat1,double lon1,double lat2,double lon2);
 

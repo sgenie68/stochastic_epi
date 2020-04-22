@@ -1,5 +1,5 @@
 CC=mpic++
-CFLAGS=-std=c++11 -lm -O3
+CFLAGS=-std=c++11 -lm  -O3
 LFLAGS=-lconfig++
 
 

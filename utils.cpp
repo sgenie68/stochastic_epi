@@ -133,9 +133,9 @@ int main()
 	printf("Normal(5,2)=%lf\n",v);
 	poisson(&vi,1,5.0);	
 	printf("Poisson(5)=%d\n",vi);
-	double d1=distance(lat1,lon1,lat2,lon2);
-	double d2=distance1(lat1,lon1,lat2,lon2);
-	double d3=distance2(lat1,lon1,lat2,lon2);
+	double d1=distance_fast(lat1,lon1,lat2,lon2);
+	double d2=distance_slow(lat1,lon1,lat2,lon2);
+	double d3=distance_slowest(lat1,lon1,lat2,lon2);
 	printf("Dist1=%lf, dist2=%lf, d3=%lf\n",d1,d2,d3);
 	return 0;
 }

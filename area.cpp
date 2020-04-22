@@ -82,6 +82,8 @@ int Person::contacts()
 {
 	int val;
 
+	if(!m_population.contacts())
+		return 0;
 	poisson(&val,1,m_population.contacts());
 	//Make number of contacts related to the age
 	return val;
@@ -153,8 +155,6 @@ void AreaBase::run()
 		{
 			//Contaminate neighbours
 	 		p->touched()+=p->contaminate(p->contacts());
-			//if(p->age()>5)
-			//	p->quarantine(true);
 			++it;
 			continue;
 		}
@@ -301,9 +301,7 @@ void AreaRank::next_epoch()
 				{
 					unsigned long l=m_population.FetchNearby(data[j]);
 					if(l!=NONE)
-					{
 						m_infect.push_back(l);
-					}
 				}
 			}
 			

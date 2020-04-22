@@ -49,8 +49,6 @@ int main(int argc,char *argv[])
 
 	for(int i=0;i<120;i++)
 	{
-		//if(i==30)
-		//	population.quarantine(true);
 		population.next_epoch();
 	}
 	MPI_Finalize();
