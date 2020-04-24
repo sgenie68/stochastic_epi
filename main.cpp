@@ -17,6 +17,7 @@ int main(int argc,char *argv[])
 	int volume=0;
 	int initial=0;
 	char configFileName[256];
+	int epochs=0;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -34,6 +35,9 @@ int main(int argc,char *argv[])
 					case 'f'://config file
 						strcpy(configFileName,argv[++i]);
 						break;
+					case 'e'://number of epochs
+						epochs=atoi(argv[++i]);
+						break;
 					default://
 						break;
 				}
@@ -43,11 +47,12 @@ int main(int argc,char *argv[])
 	}
 
 	MPI_Bcast(configFileName,255,MPI_CHAR,0,MPI_COMM_WORLD);
+	MPI_Bcast(&epochs,1,MPI_INTEGER,0,MPI_COMM_WORLD);
 
 	AreaRank population;
 	population.initialise(configFileName);
 
-	for(int i=0;i<120;i++)
+	for(int i=0;i<epochs;i++)
 	{
 		population.next_epoch();
 	}

@@ -295,6 +295,7 @@ void AreaRank::next_epoch()
 				MPI_Recv(data.data(),data.size(),MPI_LONG,slave,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
 			stats[STATS_SICK]+=ids[i+STATS_SICK];
 			stats[STATS_HOSPITAL]+=ids[i+STATS_HOSPITAL];
+#pragma omp for
 			for(int j=0;j<ids[i+STATS_NEW];j+=2)
 			{
 				for(int k=0;k<data[j+1];k++)
@@ -310,6 +311,7 @@ void AreaRank::next_epoch()
 			for(int j=0;j<ids[i+STATS_RECOVERED];j++)
 				m_population.recovered(data[j+ids[i+STATS_NEW]]+ids[i+STATS_DEAD]);
 		}
+#pragma omp for
 		for(int j=0;j<touched.size();j+=2)
 		{
 			for(int k=0;k<touched[j+1];k++)
