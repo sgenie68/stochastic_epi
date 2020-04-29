@@ -36,6 +36,7 @@ void Population::Initialise(const std::string& configname)
 		exit(1);
 	}
  	m_root = &m_config.getRoot();
+	pInject=NULL;
 }
 
 void Population::CreatePopulation(COMP_LIST& compartments)
@@ -126,18 +127,30 @@ bool Population::LoadStates()
 			s.lookupValue("name",st.name);
 			s.lookupValue("distance",st.distance);
 			s.lookupValue("contacts",st.contacts);
+			
 			try
 			{
-    				const Setting &days = s["days"];
-    				int count1 = days.getLength();
-				for(int j=0;j<count1;j++)
+				if(s.exists("days"))
 				{
-					int d;
-					double prob;
-					const Setting& ddd=days[j];
-					ddd.lookupValue("days",d);
-					ddd.lookupValue("probability",prob);
-					st.days.push_back(make_pair(d,prob));
+    					const Setting &days = s["days"];
+    					int count1 = days.getLength();
+					for(int j=0;j<count1;j++)
+					{
+						Days d;
+						d.pInject=NULL;
+						const Setting& ddd=days[j];
+						ddd.lookupValue("days",d.day);
+						ddd.lookupValue("probability",d.prob);
+						if(ddd.exists("inject"))
+						{
+							d.pInject=new Inject;
+    							const Setting &inj = ddd.lookup("inject");
+							d.pInject->mean=(int)inj[0];
+							d.pInject->stddev=(int)inj[1];
+							d.pInject->count=(int)inj[2];
+						}
+						st.days.push_back(d);
+					}
 				}
 			}
 			catch(...)
@@ -250,15 +263,49 @@ void Population::next_epoch()
 	{
 		for(int j=0;j<m_states[i].days.size();j++)
 		{
-			if(m_epoch==m_states[i].days[j].first && trigger(m_states[i].days[j].second))
+			if(m_epoch==m_states[i].days[j].day && trigger(m_states[i].days[j].prob))
 			{
 				m_current_state=i;
+			        pInject=m_states[i].days[j].pInject;
 				switched=true;
 				break;
 			}
 		}
 		if(switched)
 			break;
+	}
+	check_inject();
+}
+
+bool Population::FetchInfected(unsigned long& id)
+{
+	if(!m_infected.size())
+		return false;
+	id=m_infected.back();
+	m_infected.pop_back();
+	return true;
+}
+
+void Population::check_inject()
+{
+	double val;
+
+	if(!pInject || pInject->count<=0)
+		return;
+	uniform(&val,1,0,m_comp_list.size());
+	int index=(int)round(val);
+	normal(&val,1,pInject->mean,pInject->stddev*pInject->stddev);
+	int count=(int)round(val);
+	fprintf(stderr,"Injecting %d infections\n",count);
+	for(int i=0;i<count;i++)
+	{
+		Object *p=new Object;
+	 	p->flags=0;
+		p->index=index;
+		double mr=meters2rad(m_comp_list[index].radius);
+		uniform(&p->coordLat,1,m_comp_list[index].centreLat-mr,m_comp_list[index].centreLat+mr);
+		uniform(&p->coordLong,1,m_comp_list[index].centreLong-mr,m_comp_list[index].centreLong+mr);
+		m_infected.push_back((unsigned long)p);
 	}
 }
 

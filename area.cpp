@@ -190,6 +190,13 @@ bool AreaRank::initialise(const std::string& name)
 			if(id!=NONE)
 				m_infect.push_back(id);
 		}
+		while(1)
+		{
+			unsigned long id;
+			if(!m_population.FetchInfected(id))
+				break;
+			m_infect.push_back(id);
+		}
 		printf("Epoch, State, General, Immune, Dead, Sick, NewCases, Hospitalized\n");
 	}
 	return true;
@@ -224,8 +231,15 @@ void AreaRank::next_epoch()
 	AreaBase::next_epoch();
 	if(!rank())
 	{
-		prepare_distr_vector(m_infect.size());
 		m_population.next_epoch();
+		while(1)
+		{
+			unsigned long id;
+			if(!m_population.FetchInfected(id))
+				break;
+			m_infect.push_back(id);
+		}
+		prepare_distr_vector(m_infect.size());
 	}
 	MPI_Scatter(distr_vector,1,MPI_LONG,&number,1,MPI_LONG,0,MPI_COMM_WORLD);
 	if(!rank())

@@ -61,7 +61,10 @@ void normal(double *val,int num,double mean,double var)
 	
 	for(int i=0;i<num;i++)
 	{
-		val[i]=distribution(generator);
+		if(var)
+			val[i]=distribution(generator);
+		else
+			val[i]=mean;
 	}
 }
 

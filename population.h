@@ -25,13 +25,26 @@ struct Compartment
 };
 typedef std::vector<Compartment> COMP_LIST;
 
+struct Inject
+{
+	int mean;
+	int stddev;
+	int count;
+};
+
+struct Days
+{
+	int day;
+	double prob;
+	Inject *pInject;
+};
 
 struct State
 {
 	std::string name;
 	double distance;
 	int contacts;
-	std::vector<std::pair<int,double> > days;
+	std::vector<Days> days;
 };
 typedef std::vector<State> STATE_LIST;
 
@@ -61,6 +74,7 @@ class Population
 		void next_epoch();
 		unsigned long FetchNearby(unsigned long id);
 		unsigned long FetchRnd(); //get random object from a compartment
+		bool FetchInfected(unsigned long& id);
 
 		void dead(unsigned long id);
 		void recovered(unsigned long id);
@@ -84,18 +98,22 @@ class Population
 		Object *fetch_object_nearby(double coordLat,double coordLong,double max_distance);
 		Object *fetch_object_rnd(int comp_index); //get random object from a compartment
 
+		void check_inject();
+
 		int m_peoplemet;
 		int m_epoch;
 		COMP_LIST m_comp_list;
 		STATE_LIST m_states;
 		Parameters m_parameters;
 		int m_current_state;
+		Inject *pInject;
 		POPULATION m_general;
 		POPULATION m_immune;
 		POPULATION m_dead;
 		std::string m_configname;
 		libconfig::Config m_config;
 		const libconfig::Setting *m_root;
+		std::vector<unsigned long> m_infected;
 };
 
 #endif
