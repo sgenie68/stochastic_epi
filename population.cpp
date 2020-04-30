@@ -292,11 +292,11 @@ void Population::check_inject()
 
 	if(!pInject || pInject->count<=0)
 		return;
+	pInject->count--;
 	uniform(&val,1,0,m_comp_list.size());
 	int index=(int)round(val);
-	while(val<0.0)
-		normal(&val,1,pInject->mean,pInject->stddev*pInject->stddev);
-	int count=(int)round(val);
+	normal(&val,1,pInject->mean,pInject->stddev*pInject->stddev);
+	int count=(int)round(fabs(val));
 	fprintf(stderr,"Injecting %d infections\n",count);
 	for(int i=0;i<count;i++)
 	{

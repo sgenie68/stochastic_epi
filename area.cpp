@@ -56,9 +56,8 @@ void Person::initialise()
 	double val=0.0;
 
 	//set up days for the states
-	while(val<=0.0)
-		normal(&val,1,4,1);
-	m_days[STATE_EXPOSED]=round(val);
+	normal(&val,1,4,1);
+	m_days[STATE_EXPOSED]=round(fabs(val));
 	while(val<=0.0)
 		normal(&val,1,2,1);
 	m_days[STATE_PRESYMPTOMATIC]=m_days[STATE_EXPOSED]+round(val);
