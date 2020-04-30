@@ -297,7 +297,6 @@ void Population::check_inject()
 	int index=(int)round(val);
 	normal(&val,1,pInject->mean,pInject->stddev*pInject->stddev);
 	int count=(int)round(fabs(val));
-	fprintf(stderr,"Injecting %d infections\n",count);
 	for(int i=0;i<count;i++)
 	{
 		Object *p=new Object;
